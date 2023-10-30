@@ -1,0 +1,105 @@
+#Elevate to Administrator mode
+if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
+{  
+  $arguments = "& '" +$myinvocation.mycommand.definition + "'"
+  Start-Process powershell -Verb runAs -ArgumentList $arguments
+  Break
+}
+
+#Aquire Microsoft 365 Global Administrator credentials
+$AdminCredential = Get-Credential -Message "Dane M365 Admina:"
+
+#Aquire variables
+$TargetUPN = Read-Host -Prompt "UPN użytkownika do zablokowania:"
+$ForwardingUPN = Read-Host -Prompt "UPN użytkownika do forwardu:"
+
+#Set additional variables
+$TargetDN = Get-ADUser -Filter {UserPrincipalName -eq $TargetUPN} | Select-Object -ExpandProperty DistinguishedName
+$TargetName = Get-ADUser -Filter {UserPrincipalName -eq $TargetUPN} | Select-Object -ExpandProperty Name
+$ForwardingName = Get-ADUser -Filter {UserPrincipalName -eq $ForwardingUPN} | Select-Object -ExpandProperty Name
+
+#Reset the AD password
+#Set-ADAccountPassword -Identity $TargetDN -Reset -NewPassword (ConvertTo-SecureString -AsPlainText "StrongPassword" -Force)
+
+#Connect to Microsoft 365
+Write-Host "Loguje do M365"
+Connect-MsolService -Credential $AdminCredential
+
+#Block user sign in
+Write-Host "Blokowanie $TargetUPN w M365"
+Set-MsolUser -UserPrincipalName $TargetUPN -BlockCredential $true
+
+#Connect to Azure AD
+Connect-AzureAd -Credential $AdminCredential
+
+#Obtain Azure AD Object ID for user
+$TargetAADOID = Get-AzureAdUser -ObjectID $TargetUPN | Select-Object -ExpandProperty ObjectID
+
+#Revoke all user tokens
+Write-Host "Wylogowuje wszystkie instancje"
+Revoke-AzureADUserAllRefreshToken -ObjectId $TargetAADOID
+
+#Connect to Exchange Online
+Connect-ExchangeOnline -Credential $AdminCredential -ShowProgress $true
+
+#Change the user mailbox to a Shared mailbox
+Write-Host "Zmiana skrzynki na Shared"
+Set-Mailbox $TargetUPN -Type Shared
+
+#Remove all user licenses
+Write-Host "Usuwanie Licencji"
+$licensePlanList = Get-AzureADSubscribedSku
+$userList = Get-AzureADUser -ObjectID $TargetUPN | Select -ExpandProperty AssignedLicenses | Select SkuID
+if($userList.Count -ne 0) {
+if($userList -is [array]) {
+for ($i=0; $i -lt $userList.Count; $i++) {
+$license = New-Object -TypeName Microsoft.Open.AzureAD.Model.AssignedLicense
+$licenses = New-Object -TypeName Microsoft.Open.AzureAD.Model.AssignedLicenses
+$license.SkuId = $userList[$i].SkuId
+$licenses.AddLicenses = $license
+Set-AzureADUserLicense -ObjectId $TargetUPN -AssignedLicenses $licenses
+$Licenses.AddLicenses = @()
+$Licenses.RemoveLicenses =  (Get-AzureADSubscribedSku | Where-Object -Property SkuID -Value $userList[$i].SkuId -EQ).SkuID
+Set-AzureADUserLicense -ObjectId $TargetUPN -AssignedLicenses $licenses
+}
+} else {
+$license = New-Object -TypeName Microsoft.Open.AzureAD.Model.AssignedLicense
+$licenses = New-Object -TypeName Microsoft.Open.AzureAD.Model.AssignedLicenses
+$license.SkuId = $userList.SkuId
+$licenses.AddLicenses = $license
+Set-AzureADUserLicense -ObjectId $TargetUPN -AssignedLicenses $licenses
+$Licenses.AddLicenses = @()
+$Licenses.RemoveLicenses =  (Get-AzureADSubscribedSku | Where-Object -Property SkuID -Value $userList.SkuId -EQ).SkuID
+Set-AzureADUserLicense -ObjectId $TargetUPN -AssignedLicenses $licenses
+}}
+
+#Set the user autorply
+Write-Host "Ustawianie zwrotki"
+Set-MailboxAutoReplyConfiguration -Identity $TargetUPN -AutoReplyState Enabled -InternalMessage "<< WIADOMOŚĆ WYGENEROWANA AUTOMATYCZNIE >>  <br> <br> $TargetName zakończył współpracę z grupą. Prosimy o usunięcie adresu $TargetUPN z przyszłej korespondencji." -ExternalMessage "<< WIADOMOŚĆ WYGENEROWANA AUTOMATYCZNIE >> <br> <br> $TargetName zakończył współpracę z . Prosimy o usunięcie adresu $TargetUPN z przyszłej korespondencji."
+
+#Set forwarding mailbox
+Set-Mailbox -Identity $TargetUPN -ForwardingAddress $ForwardingUPN -DeliverToMailboxAndForward $True
+
+#Hide User from Global Address List
+Write-Host "Usuwam z GAL"
+Set-ADUser -Identity $TargetDN -replace @{"msDS-cloudExtensionAttribute1"="HideFromGAL"}
+
+#Force start a delta synce cycle with Micsoft 365
+#Start-ADSyncSyncCycle -PolicyType Delta
+
+
+
+#Disable the user in the local Active Directory
+Write-Host "Wyłaczam konto w AD"
+Disable-ADAccount -Identity $TargetDN
+
+#Change OU to Dissmissed
+Write-Host "Zmiana OU na Dissmised"
+Get-ADUser -Identity $TargetDN | Move-ADObject -TargetPath "OU=Dismissed"
+
+#Disconnect from All Services
+Disconnect-AzureAD
+Disconnect-ExchangeOnline
+
+Write-Host "Miłego dnia życzę!"
+Start-Sleep -Seconds 3

@@ -1,0 +1,28 @@
+####  Przerobić będzie działać!
+
+$Users = Import-CSV C:\Users\user\Documents\CurrentWork\userlist.csv
+
+
+
+foreach ($User in $Users) {
+    $adUser = Get-ADUser -Filter "DisplayName -eq '$($User.EmployeeFullName)'" -Properties DisplayName -ErrorAction SilentlyContinue
+    if ($adUser) {
+        # set up a Splatting Hashtable for the Set-ADUser cmdlet
+        $userParams = @{
+            Department = $User.Department
+            Division   = $User.Division
+            Title      = $User.JobTitle
+        }
+        $manager = Get-ADUser -Filter "Name -eq "$($User.LineMangerFullname) -ErrorAction SilentlyContinue
+        # if we did find a manager, add property 'Manager' to the Hashtable
+        if ($manager) { $userParams['Manager'] = $manager.DistinguishedName }
+
+        # use the Hash to splat all known parameters to Set-ADUser
+        $adUser | Set-ADUser $userParams
+        # next , update the attributes that have no direct parameter in Set-ADUser
+        $adUser | Set-ADUser -Replace @{ info = $User.Service; departmentNumber = $User.'Cost Centre' }
+    }
+    else {
+        Write-Warning "User $($User.EmployeeFullName) could not be found"
+    }
+}
