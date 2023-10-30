@@ -1,4 +1,0 @@
-
-## Zapisywnaie maili shared box w wyslanych
-
-Get-Mailbox Nazwa_Konta_Udostępnionego | Set-Mailbox -MessageCopyForSentAsEnabled $true -MessageCopyForSendOnBehalfEnabled $true
