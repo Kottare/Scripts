@@ -4,7 +4,7 @@ Connect-ExchangeOnline
 
 ## Pobieramy dane o użytkowniku i jego kalendarzu
 
-Get-Mailbox -Identity "Grzegorz Panek" | Get-MailboxFolderStatistics -FolderScope Calendar | Select Identity,Name
+Get-Mailbox -Identity "Imie_Naziwsko" | Get-MailboxFolderStatistics -FolderScope Calendar | Select Identity,Name
 
 ## Zwraca nam kaledarze i usera z identity
 
@@ -32,7 +32,7 @@ Set-MailboxFolderPermission 982fea6a-3815-47ed-8fb9-aae4a518bd6f:\Kalendarz -Use
 
 ############## 
 
-##PS C:\Users\admgpanek> Get-MailboxFolderPermission 982fea6a-3815-47ed-8fb9-aae4a518bd6f:\Kalendarz
+##Get-MailboxFolderPermission 982fea6a-3815-47ed-8fb9-aae4a518bd6f:\Kalendarz
 ##
 ##FolderName           User                 AccessRights                           SharingPermissionFlags
 ##----------           ----                 ------------                           ----------------------
