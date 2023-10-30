@@ -75,7 +75,7 @@ Set-AzureADUserLicense -ObjectId $TargetUPN -AssignedLicenses $licenses
 
 #Set the user autorply
 Write-Host "Ustawianie zwrotki"
-Set-MailboxAutoReplyConfiguration -Identity $TargetUPN -AutoReplyState Enabled -InternalMessage "<< WIADOMOŚĆ WYGENEROWANA AUTOMATYCZNIE >>  <br> <br> $TargetName zakończył współpracę z grupą ML System. Prosimy o usunięcie adresu $TargetUPN z przyszłej korespondencji." -ExternalMessage "<< WIADOMOŚĆ WYGENEROWANA AUTOMATYCZNIE >> <br> <br> $TargetName zakończył współpracę z grupą ML System. Prosimy o usunięcie adresu $TargetUPN z przyszłej korespondencji."
+Set-MailboxAutoReplyConfiguration -Identity $TargetUPN -AutoReplyState Enabled -InternalMessage "<< WIADOMOŚĆ WYGENEROWANA AUTOMATYCZNIE >>  <br> <br> $TargetName zakończył współpracę. Prosimy o usunięcie adresu $TargetUPN z przyszłej korespondencji." -ExternalMessage "<< WIADOMOŚĆ WYGENEROWANA AUTOMATYCZNIE >> <br> <br> $TargetName zakończył współpracę z. Prosimy o usunięcie adresu $TargetUPN z przyszłej korespondencji."
 
 #Set forwarding mailbox
 Set-Mailbox -Identity $TargetUPN -ForwardingAddress $ForwardingUPN -DeliverToMailboxAndForward $True
@@ -95,7 +95,7 @@ Disable-ADAccount -Identity $TargetDN
 
 #Change OU to Dissmissed
 Write-Host "Zmiana OU na Dissmised"
-Get-ADUser -Identity $TargetDN | Move-ADObject -TargetPath "OU=Dismissed,DC=AD,DC=MLSYSTEM,DC=PL"
+Get-ADUser -Identity $TargetDN | Move-ADObject -TargetPath "OU=Dismissed"
 
 #Disconnect from All Services
 Disconnect-AzureAD
