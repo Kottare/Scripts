@@ -1,0 +1,3 @@
+## Dodawanie aliasu powershell
+
+Set-ADUser wgrzybowska -add @{ProxyAddresses="smtp:wioleta.grzybowska@mlsystemplus.pl"}

@@ -1,0 +1,8 @@
+select PRE_Kod as 'Kod', DKM_Nazwa as 'Stanowisko',PRE_HDKEmail as 'Adres mail', Uzy_Gadugadu as 'Wewnętrzny',PRE_HDKTelefon1 as 'Telefon Optima', Uzy_Telefon as 'Telefon HRM', DZL_Nazwa as 'Nazwa wydziału'
+from cdn.PracEtaty
+join cdn.Dzialy on PRE_DzlId=DZL_DzlId
+join cdn.DaneKadMod on PRE_ETADkmIdStanowisko=DKM_DkmId
+join cdn.EP_Uzytkownicy on Uzy_Id = PRE_PraId
+--join cdn.EP_UzytkownicyMembership on Uzy_Id = UzM_UzyId
+where pre_datado > GETDATE() --AND pre_zatrudnionydo > GETDATE()
+group by PRE_Kod, DKM_Nazwa, PRE_HDKEmail, Uzy_Gadugadu, PRE_HDKTelefon1, Uzy_Telefon, DZL_Nazwa

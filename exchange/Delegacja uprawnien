@@ -1,0 +1,8 @@
+## Usuwanie delegowanych uprawnien na skrzynke dla $USERNAME
+
+Get-Mailbox -RecipientTypeDetails UserMailbox,SharedMailbox -ResultSize Unlimited -erroraction SilentlyContinue | Remove-MailboxPermission -AccessRights FullAccess -User USERNAME
+
+## Sprawdzanie wydelegowanych uprawnien
+Get-Mailbox -RecipientTypeDetails UserMailbox,SharedMailbox -ResultSize Unlimited -erroraction SilentlyContinue | Get-MailboxPermission -User gpanek@ad.mlsystem.pl
+
+

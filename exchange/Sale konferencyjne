@@ -1,0 +1,18 @@
+## Dodanie nowej sali konferencyjnej
+Net-Place -Identity <nazwa>
+
+## Edycja sali konferencyjnej
+Set-Place
+
+## Informacje o salach konferencyjnych
+Get-Place
+
+## Dodanie nowego budynku
+New-DistributionGroup -Name "Nazwa budynku" -RoomList
+
+## Wyświetlenie budynków
+Get-DistributionGroup -RecipientTypeDetails RoomList
+
+## Wyświetlenie budynków fullinfo
+Get-DistributionGroup -RecipientTypeDetails RoomList | Format-List
+
