@@ -1,0 +1,12 @@
+$name = 'searchname'
+$subject = "subject containing `quoted` content"
+$startdate = get-date (get-date).adddays(-7) -format 'MM/dd/yyyy'
+$enddate = get-date (get-date).adddays(1) -format 'MM/dd/yyyy'
+$searchdate = '(Received:' + $startdate + '..' + $enddate + ')'
+$searchsubject = '(Subject:' + $subject + ')'
+$contentmatch = $searchdate + ' AND ' + $searchsubject
+
+
+$search= New-ComplianceSearch -Name $name -ExchangeLocation All -ContentMatchQuery $contentmatch
+Start-ComplianceSearch -Identity $Search.Identity
+New-ComplianceSearchAction -SearchName $name -Purge -PurgeType HardDelete -Confirm:$false -Force
