@@ -7,3 +7,10 @@ Dystrybucyjna dla osób z końcówka maila
 
 
 New-DynamicDistributionGroup -name "Pracownicy" -RecipientFilter "(RecipientTypeDetails -eq 'UserMailbox') -and (WindowsLiveID -eq '*@domain.pl')"
+
+
+
+New-DynamicDistributionGroup -name "Pracownicy" -RecipientFilter "(RecipientTypeDetails -eq 'UserMailbox') -and (WindowsLiveID -eq '*@mail.pl')"
+Get-DistributionGroup 
+
+Set-DynamicDistributionGroup -identity "Pracownicy" -RecipientFilter {(WindowsLiveID -eq '*@mail.pl') -and (-not(RecipientTypeDetailsValue -eq 'SharedMailbox')) -and (-not(RecipientTypeDetailsValue -eq 'RoomMailbox')) -and (-not(RecipientType -eq 'MailContact')) -and (-not(RecipientType -eq 'MailUniversalDistributionGroup'))  -and (-not(RecipientTypeDetailsValue -eq 'EquipmentMailbox'))}
